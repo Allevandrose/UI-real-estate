@@ -13,6 +13,9 @@ import {
   RiMapLine, // For Land & Plots
 } from "@remixicon/react";
 
+// NEW: API service
+import api from "../services/api";
+
 function TextType({
   text,
   typingSpeed,
@@ -84,11 +87,34 @@ function TextType({
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
+  // NEW: Property state
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // NEW: Fetch properties
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await api.get("/properties");
+        if (res.data.success) {
+          // Show only first 6 properties
+          setProperties(res.data.data.slice(0, 6) || []);
+        }
+      } catch (err) {
+        setError("Failed to load properties");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProperties();
   }, []);
 
   // UPDATED services array with Remix Icons as components instead of Emojis
@@ -132,6 +158,12 @@ export default function Home() {
       text: "Transparent pricing and verified listings gave me confidence. Highly recommend Home254!",
     },
   ];
+
+  // Helper for image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
+    return `http://localhost:5000${imagePath}`;
+  };
 
   return (
     <div className="w-full bg-gray-50 text-gray-800 overflow-x-hidden">
@@ -231,6 +263,90 @@ export default function Home() {
           <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto mt-2 flex justify-center">
             <div className="w-1 h-3 bg-gray-400 rounded-full mt-2 animate-pulse"></div>
           </div>
+        </div>
+      </section>
+
+      {/* 👇 NEW: PROPERTY LISTINGS SECTION (PUBLIC) */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Featured Properties
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Explore the latest verified listings for sale and rent across
+              Kenya.
+            </p>
+            <div className="mt-6">
+              <a
+                href="/property"
+                className="inline-block text-blue-600 font-medium hover:underline"
+              >
+                View all properties →
+              </a>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="bg-gray-50 rounded-xl animate-pulse h-80"
+                ></div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-600">{error}</div>
+          ) : properties.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No properties available at the moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {properties.map((property) => (
+                <a
+                  key={property._id}
+                  href={`/property/${property._id}`}
+                  className="block bg-white rounded-xl shadow-md hover:shadow-lg transition group"
+                >
+                  {property.images && property.images.length > 0 ? (
+                    <img
+                      src={getImageUrl(property.images[0])}
+                      alt={property.title}
+                      className="w-full h-48 object-cover rounded-t-xl"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://placehold.co/600x400?text=No+Image";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200 rounded-t-xl flex items-center justify-center">
+                      <span className="text-gray-500">No Image</span>
+                    </div>
+                  )}
+                  <div className="p-5">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-blue-700 transition-colors">
+                        {property.title}
+                      </h3>
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        {property.propertyType === "sale"
+                          ? "For Sale"
+                          : "For Rent"}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {property.location.town}, {property.location.county}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-green-600">
+                      KES {property.price.toLocaleString()}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
