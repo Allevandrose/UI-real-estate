@@ -1,4 +1,3 @@
-// src/App.jsx
 import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -10,8 +9,9 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Import the actual PropertyList
+// Admin Pages
 import PropertyList from "./pages/admin/PropertyList";
+import CreateProperty from "./pages/admin/CreateProperty"; // Make sure this exists
 
 function App() {
   const location = useLocation();
@@ -45,6 +45,14 @@ function App() {
               element={
                 <AdminLayout>
                   <PropertyList />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/properties/new"
+              element={
+                <AdminLayout>
+                  <CreateProperty />
                 </AdminLayout>
               }
             />
