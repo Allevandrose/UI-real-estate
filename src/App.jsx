@@ -1,3 +1,4 @@
+// src/App.jsx
 import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -11,7 +12,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Admin Pages
 import PropertyList from "./pages/admin/PropertyList";
-import CreateProperty from "./pages/admin/CreateProperty"; // Make sure this exists
+import CreateProperty from "./pages/admin/CreateProperty";
+import AdminPropertyDetail from "./pages/admin/AdminPropertyDetail";
+import EditProperty from "./pages/admin/EditProperty"; // ← NEW
+
+// Public Property Detail Page
+import PropertyDetail from "./pages/PropertyDetail";
 
 function App() {
   const location = useLocation();
@@ -29,6 +35,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/property/:id" element={<PropertyDetail />} />
 
           {/* Protected Admin Routes */}
           <Route element={<ProtectedRoute />}>
@@ -53,6 +60,24 @@ function App() {
               element={
                 <AdminLayout>
                   <CreateProperty />
+                </AdminLayout>
+              }
+            />
+            {/* Detail view */}
+            <Route
+              path="/admin/properties/:id"
+              element={
+                <AdminLayout>
+                  <AdminPropertyDetail />
+                </AdminLayout>
+              }
+            />
+            {/* Edit form — must come AFTER detail route */}
+            <Route
+              path="/admin/properties/edit/:id"
+              element={
+                <AdminLayout>
+                  <EditProperty />
                 </AdminLayout>
               }
             />

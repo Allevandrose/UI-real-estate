@@ -1,4 +1,3 @@
-// src/pages/admin/PropertyList.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -13,12 +12,13 @@ export default function PropertyList() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ FIXED: No encoding — just concatenate
+  // Get full image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
     return `http://localhost:5000${imagePath}`;
   };
 
+  // Load properties on mount
   useEffect(() => {
     const loadProperties = async () => {
       try {
@@ -36,7 +36,14 @@ export default function PropertyList() {
     loadProperties();
   }, []);
 
-  const handleDelete = async (id, title) => {
+  // Navigate to admin property detail
+  const handleView = (id) => {
+    navigate(`/admin/properties/${id}`);
+  };
+
+  // Delete a property
+  const handleDelete = async (id, title, e) => {
+    e.stopPropagation(); // Prevent triggering the card click
     const result = await Swal.fire({
       title: "Are you sure?",
       text: `Delete "${title}"? This cannot be undone.`,
@@ -59,10 +66,6 @@ export default function PropertyList() {
         Swal.fire("Error", msg, "error");
       }
     }
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/admin/properties/edit/${id}`);
   };
 
   if (loading) {
@@ -118,7 +121,8 @@ export default function PropertyList() {
           {properties.map((property) => (
             <div
               key={property._id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition"
+              onClick={() => handleView(property._id)}
+              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer relative"
             >
               {property.images && property.images.length > 0 ? (
                 <img
@@ -126,7 +130,6 @@ export default function PropertyList() {
                   alt={property.title}
                   className="w-full h-48 object-cover"
                   onError={(e) => {
-                    // ✅ Fixed: no leading space in URL
                     e.target.src = "https://placehold.co/600x400?text=No+Image";
                   }}
                 />
@@ -155,16 +158,12 @@ export default function PropertyList() {
                   KES {property.price.toLocaleString()}
                 </p>
 
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 absolute top-2 right-2">
                   <button
-                    onClick={() => handleEdit(property._id)}
-                    className="flex-1 bg-blue-600 text-white py-1.5 rounded text-sm hover:bg-blue-700 transition"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(property._id, property.title)}
-                    className="flex-1 bg-red-600 text-white py-1.5 rounded text-sm hover:bg-red-700 transition"
+                    onClick={(e) =>
+                      handleDelete(property._id, property.title, e)
+                    }
+                    className="bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700 transition"
                   >
                     Delete
                   </button>

@@ -7,7 +7,6 @@ import api from "../services/api";
 export default function PropertyForm({ isEdit = false, initialData = {} }) {
   const navigate = useNavigate();
 
-  // Form state
   const [formData, setFormData] = useState({
     title: initialData.title || "",
     description: initialData.description || "",
@@ -48,17 +47,20 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
 
     const formDataToSend = new FormData();
 
-    // Append text fields
+    // Append text fields (skip empty optional specs)
     Object.keys(formData).forEach((key) => {
-      if (formData[key] !== "" && formData[key] !== null) {
-        formDataToSend.append(key, formData[key]);
+      const val = formData[key];
+      if (val !== "" && val !== null && val !== undefined) {
+        formDataToSend.append(key, val);
       }
     });
 
-    // Append images
-    images.forEach((file) => {
-      formDataToSend.append("images", file);
-    });
+    // Only append images if new files selected
+    if (images.length > 0) {
+      images.forEach((file) => {
+        formDataToSend.append("images", file);
+      });
+    }
 
     try {
       const url = isEdit ? `/properties/${initialData._id}` : "/properties";
@@ -271,6 +273,31 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
             <p className="mt-2 text-sm text-gray-600">
               Selected: {images.length} file(s)
             </p>
+          )}
+
+          {/* Show current images in edit mode */}
+          {isEdit && initialData.images && initialData.images.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Current Images
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {initialData.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={`http://localhost:5000${img}`}
+                    alt={`current-${i}`}
+                    className="w-16 h-16 object-cover rounded border"
+                    onError={(e) => {
+                      e.target.src = "https://placehold.co/60x60?text=Img";
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Select new images above to replace all existing ones.
+              </p>
+            </div>
           )}
         </div>
 
