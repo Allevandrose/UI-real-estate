@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-// Remix Icons
 import {
   RiFacebookCircleFill,
   RiLinkedinBoxFill,
@@ -11,11 +10,12 @@ import {
   RiKey2Line,
   RiBriefcase2Line,
   RiMapLine,
+  RiSearchLine,
 } from "@remixicon/react";
-// API service
 import api from "../services/api";
+import { searchProperties, fetchProperties } from "../services/propertyService";
 
-// TextType component for animated typing
+// Typing animation component
 function TextType({
   text,
   typingSpeed,
@@ -89,6 +89,17 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ Search filters
+  const [filters, setFilters] = useState({
+    "location.county": "",
+    "location.town": "",
+    propertyType: "",
+    category: "",
+    price: "",
+    "specs.bedrooms": "",
+    "specs.bathrooms": "",
+  });
+
   // Scroll listener
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -96,25 +107,45 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch properties
+  // ✅ Fetch properties with filters
   useEffect(() => {
-    const fetchProperties = async () => {
+    const loadProperties = async () => {
+      setLoading(true);
       try {
-        const res = await api.get("/properties");
-        if (res.data.success) {
-          setProperties(res.data.data.slice(0, 6) || []);
-        }
+        const isEmpty = Object.values(filters).every((val) => !val);
+        const res = isEmpty
+          ? await fetchProperties()
+          : await searchProperties(filters);
+        setProperties(res.data.data || []);
       } catch (err) {
-        setError("Failed to load properties");
         console.error(err);
+        setError("Failed to load properties");
       } finally {
         setLoading(false);
       }
     };
-    fetchProperties();
-  }, []);
+    loadProperties();
+  }, [filters]);
 
-  // Cloudinary/helper image URL resolver
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const resetFilters = () =>
+    setFilters({
+      "location.county": "",
+      "location.town": "",
+      propertyType: "",
+      category: "",
+      price: "",
+      "specs.bedrooms": "",
+      "specs.bathrooms": "",
+    });
+
   const getImageUrl = (image) =>
     image?.startsWith("http")
       ? image
@@ -130,21 +161,20 @@ export default function Home() {
     {
       title: "Rent Apartments",
       icon: <RiKey2Line />,
-      desc: "Explore verified listings for renting apartments with ease and confidence.",
+      desc: "Find quality apartments for rent across Kenya.",
     },
     {
       title: "Sell Property",
       icon: <RiBriefcase2Line />,
-      desc: "Explore verified listings for selling property with ease and confidence.",
+      desc: "List your property and reach verified buyers fast.",
     },
     {
       title: "Land & Plots",
       icon: <RiMapLine />,
-      desc: "Explore verified listings for land & plots with ease and confidence.",
+      desc: "Secure land or plots in prime locations.",
     },
   ];
 
-  // Testimonials
   const testimonials = [
     {
       name: "Jane Wanjiku",
@@ -165,133 +195,178 @@ export default function Home() {
 
   return (
     <div className="w-full bg-gray-50 text-gray-800 overflow-x-hidden">
-      {/* HERO */}
+      {/* HERO SECTION */}
       <section className="relative pt-32 pb-24 bg-gradient-to-br from-white via-blue-50 to-indigo-50 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-indigo-200 rounded-full opacity-20 blur-3xl"></div>
         <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-16 relative">
-          {/* Text */}
-          <div className="flex-1 text-center lg:text-left space-y-6 animate-fade-in">
-            <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
+          <div className="flex-1 text-center lg:text-left space-y-6">
+            <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-gray-900">
               We Help You Find <br />
-              <TextType
-                text={[
-                  "the Perfect Home in Kenya",
-                  "Affordable Apartments & Plots",
-                  "Trusted Agents Nationwide",
-                ]}
-                typingSpeed={70}
-                deletingSpeed={40}
-                pauseDuration={2000}
-                showCursor={true}
-                cursorCharacter="|"
-                textColors={["#1E3A8A", "#2563EB", "#047857"]}
-              />
+              <span className="text-3xl lg:text-4xl">
+                <TextType
+                  text={[
+                    "Your Perfect Home",
+                    "Affordable Properties",
+                    "Trusted Agents",
+                  ]}
+                  typingSpeed={70}
+                  deletingSpeed={40}
+                  pauseDuration={2000}
+                  showCursor={true}
+                  cursorCharacter="|"
+                  textColors={["#1E3A8A", "#2563EB", "#047857"]}
+                />
+              </span>
             </h1>
             <p className="text-lg text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Browse verified listings for sale and rent across the country —
               modern apartments, family homes, and investment plots.
             </p>
-            <button className="group bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto lg:mx-0">
-              Get Started{" "}
-              <span className="group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </button>
-            {/* Stats */}
-            <div className="flex gap-8 pt-8 justify-center lg:justify-start">
-              <div>
-                <div className="text-3xl font-bold text-blue-700">500+</div>
-                <div className="text-sm text-gray-600">Properties</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-700">1000+</div>
-                <div className="text-sm text-gray-600">Happy Clients</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-700">50+</div>
-                <div className="text-sm text-gray-600">Locations</div>
-              </div>
-            </div>
           </div>
-          {/* Hero Image */}
           <div className="flex-1 relative">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
+            <div className="rounded-3xl overflow-hidden shadow-2xl">
               <img
                 src="/images/appartment.jpg"
                 alt="Modern apartment"
                 className="w-full h-auto object-cover"
-                onError={(e) =>
-                  (e.target.src =
-                    "https://placehold.co/600x400?text=Property+Image")
-                }
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURED PROPERTIES */}
-      <section className="py-20 bg-white">
+      {/* ✅ SEARCH & FILTER SECTION - REDESIGNED */}
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Featured Properties
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Explore the latest verified listings for sale and rent across
-              Kenya.
-            </p>
-            <div className="mt-6">
-              <a
-                href="/property"
-                className="inline-block text-blue-600 font-medium hover:underline"
+          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <RiSearchLine className="text-blue-600 text-2xl" />
+              <h3 className="text-2xl font-bold text-gray-900">
+                Find Your Perfect Property
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <input
+                name="location.county"
+                value={filters["location.county"]}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="County (e.g., Nairobi)"
+              />
+              <input
+                name="location.town"
+                value={filters["location.town"]}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Town (e.g., Westlands)"
+              />
+              <select
+                name="propertyType"
+                value={filters.propertyType}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
-                View all properties →
-              </a>
+                <option value="">Property Type</option>
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+              </select>
+              <select
+                name="category"
+                value={filters.category}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">Category</option>
+                <option value="apartment">Apartment</option>
+                <option value="bungalow">Bungalow</option>
+                <option value="land">Land</option>
+                <option value="office">Office</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <input
+                name="price"
+                type="number"
+                value={filters.price}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Max Price (KES)"
+              />
+              <select
+                name="specs.bedrooms"
+                value={filters["specs.bedrooms"]}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">Bedrooms</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+              <select
+                name="specs.bathrooms"
+                value={filters["specs.bathrooms"]}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">Bathrooms</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+              </select>
+              <button
+                onClick={resetFilters}
+                className="w-full bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 py-3 rounded-xl font-semibold hover:from-gray-200 hover:to-gray-300 transition-all shadow-sm hover:shadow-md"
+              >
+                Reset Filters
+              </button>
             </div>
           </div>
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="bg-gray-50 rounded-xl animate-pulse h-80"
-                ></div>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-12 text-red-600">{error}</div>
+        </div>
+      </section>
+
+      {/* FEATURED PROPERTIES - REDESIGNED HEADING */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {loading ? "Loading Properties..." : "Available Properties"}
+            </h2>
+            <p className="text-lg text-gray-600">
+              {loading
+                ? "Please wait"
+                : `${properties.length} properties ${
+                    filters["location.county"]
+                      ? `in ${filters["location.county"]}`
+                      : "across Kenya"
+                  }`}
+            </p>
+          </div>
+
+          {error ? (
+            <p className="text-center text-red-500">{error}</p>
           ) : properties.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              No properties available at the moment.
-            </div>
+            <p className="text-center text-gray-500">
+              No properties match your filters.
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {properties.map((property) => (
                 <a
                   key={property._id}
                   href={`/property/${property._id}`}
-                  className="block bg-white rounded-xl shadow-md hover:shadow-lg transition group"
+                  className="block bg-white rounded-xl shadow-md hover:shadow-lg transition"
                 >
-                  {property.images?.[0] ? (
-                    <img
-                      src={getImageUrl(property.images[0])}
-                      alt={property.title}
-                      className="w-full h-48 object-cover rounded-t-xl"
-                      onError={(e) =>
-                        (e.target.src =
-                          "https://placehold.co/600x400?text=No+Image")
-                      }
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 rounded-t-xl flex items-center justify-center">
-                      <span className="text-gray-500">No Image</span>
-                    </div>
-                  )}
+                  <img
+                    src={getImageUrl(property.images?.[0])}
+                    alt={property.title}
+                    className="w-full h-48 object-cover rounded-t-xl"
+                  />
                   <div className="p-5">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1 group-hover:text-blue-700 transition-colors">
+                      <h3 className="font-bold text-lg text-gray-900">
                         {property.title}
                       </h3>
                       <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -549,7 +624,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* FOOTER - FIXED ALIGNMENT */}
       <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-950 text-gray-300">
         <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
