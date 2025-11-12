@@ -12,20 +12,17 @@ export default function PropertyList() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Get full image URL
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
-    return `http://localhost:5000${imagePath}`;
-  };
+  // Simplified image handler (Cloudinary URLs are full links)
+  const getImageUrl = (image) =>
+    image?.startsWith("http")
+      ? image
+      : "https://placehold.co/600x400?text=No+Image";
 
-  // Load properties on mount
   useEffect(() => {
     const loadProperties = async () => {
       try {
         const res = await fetchProperties();
-        if (res.data.success) {
-          setProperties(res.data.data || []);
-        }
+        if (res.data.success) setProperties(res.data.data || []);
       } catch (err) {
         setError("Failed to load properties");
         console.error(err);
@@ -36,14 +33,9 @@ export default function PropertyList() {
     loadProperties();
   }, []);
 
-  // Navigate to admin property detail
-  const handleView = (id) => {
-    navigate(`/admin/properties/${id}`);
-  };
+  const handleView = (id) => navigate(`/admin/properties/${id}`);
 
-  // Delete a property
-  const handleDelete = async (id, title, e) => {
-    e.stopPropagation(); // Prevent triggering the card click
+  const handleDelete = async (id, title) => {
     const result = await Swal.fire({
       title: "Are you sure?",
       text: `Delete "${title}"? This cannot be undone.`,
@@ -68,7 +60,7 @@ export default function PropertyList() {
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
@@ -78,9 +70,8 @@ export default function PropertyList() {
         </div>
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
       <div className="p-8 text-red-600">
         <p>{error}</p>
@@ -92,7 +83,6 @@ export default function PropertyList() {
         </button>
       </div>
     );
-  }
 
   return (
     <div>
@@ -129,9 +119,10 @@ export default function PropertyList() {
                   src={getImageUrl(property.images[0])}
                   alt={property.title}
                   className="w-full h-48 object-cover"
-                  onError={(e) => {
-                    e.target.src = "https://placehold.co/600x400?text=No+Image";
-                  }}
+                  onError={(e) =>
+                    (e.target.src =
+                      "https://placehold.co/600x400?text=No+Image")
+                  }
                 />
               ) : (
                 <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
@@ -160,9 +151,10 @@ export default function PropertyList() {
 
                 <div className="mt-4 absolute top-2 right-2">
                   <button
-                    onClick={(e) =>
-                      handleDelete(property._id, property.title, e)
-                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(property._id, property.title);
+                    }}
                     className="bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700 transition"
                   >
                     Delete

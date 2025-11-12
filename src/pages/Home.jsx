@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-// NEW IMPORTS FOR REMIX ICONS
+// Remix Icons
 import {
   RiFacebookCircleFill,
   RiLinkedinBoxFill,
@@ -7,15 +7,15 @@ import {
   RiMailFill,
   RiPhoneFill,
   RiMapPinFill,
-  RiHome4Line, // For Buy Homes
-  RiKey2Line, // For Rent Apartments
-  RiBriefcase2Line, // For Sell Property
-  RiMapLine, // For Land & Plots
+  RiHome4Line,
+  RiKey2Line,
+  RiBriefcase2Line,
+  RiMapLine,
 } from "@remixicon/react";
-
-// NEW: API service
+// API service
 import api from "../services/api";
 
+// TextType component for animated typing
 function TextType({
   text,
   typingSpeed,
@@ -54,13 +54,11 @@ function TextType({
 
     const timer = setTimeout(
       () => {
-        setCurrentText((prev) => {
-          if (isDeleting) {
-            return fullText.substring(0, prev.length - 1);
-          } else {
-            return fullText.substring(0, prev.length + 1);
-          }
-        });
+        setCurrentText((prev) =>
+          isDeleting
+            ? fullText.substring(0, prev.length - 1)
+            : fullText.substring(0, prev.length + 1)
+        );
       },
       isDeleting ? deletingSpeed : typingSpeed
     );
@@ -87,24 +85,23 @@ function TextType({
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
-  // NEW: Property state
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Scroll listener
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // NEW: Fetch properties
+  // Fetch properties
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         const res = await api.get("/properties");
         if (res.data.success) {
-          // Show only first 6 properties
           setProperties(res.data.data.slice(0, 6) || []);
         }
       } catch (err) {
@@ -117,30 +114,37 @@ export default function Home() {
     fetchProperties();
   }, []);
 
-  // UPDATED services array with Remix Icons as components instead of Emojis
+  // Cloudinary/helper image URL resolver
+  const getImageUrl = (image) =>
+    image?.startsWith("http")
+      ? image
+      : "https://placehold.co/600x400?text=No+Image";
+
+  // Services
   const services = [
     {
       title: "Buy Homes",
-      icon: <RiHome4Line />, // Replaced 🏡 with RiHome4Line
+      icon: <RiHome4Line />,
       desc: "Explore verified listings for buying homes with ease and confidence.",
     },
     {
       title: "Rent Apartments",
-      icon: <RiKey2Line />, // Replaced 🔑 with RiKey2Line
+      icon: <RiKey2Line />,
       desc: "Explore verified listings for renting apartments with ease and confidence.",
     },
     {
       title: "Sell Property",
-      icon: <RiBriefcase2Line />, // Replaced 💼 with RiBriefcase2Line
+      icon: <RiBriefcase2Line />,
       desc: "Explore verified listings for selling property with ease and confidence.",
     },
     {
       title: "Land & Plots",
-      icon: <RiMapLine />, // Replaced 🗺️ with RiMapLine
+      icon: <RiMapLine />,
       desc: "Explore verified listings for land & plots with ease and confidence.",
     },
   ];
 
+  // Testimonials
   const testimonials = [
     {
       name: "Jane Wanjiku",
@@ -159,22 +163,14 @@ export default function Home() {
     },
   ];
 
-  // Helper for image URL
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
-    return `http://localhost:5000${imagePath}`;
-  };
-
   return (
     <div className="w-full bg-gray-50 text-gray-800 overflow-x-hidden">
-      {/* HERO SECTION (REST OF THE COMPONENT) */}
+      {/* HERO */}
       <section className="relative pt-32 pb-24 bg-gradient-to-br from-white via-blue-50 to-indigo-50 overflow-hidden">
-        {/* Decorative circles */}
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-40 h-40 bg-indigo-200 rounded-full opacity-20 blur-3xl"></div>
-
         <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-16 relative">
-          {/* Text Content */}
+          {/* Text */}
           <div className="flex-1 text-center lg:text-left space-y-6 animate-fade-in">
             <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
               We Help You Find <br />
@@ -192,19 +188,16 @@ export default function Home() {
                 textColors={["#1E3A8A", "#2563EB", "#047857"]}
               />
             </h1>
-
             <p className="text-lg text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               Browse verified listings for sale and rent across the country —
               modern apartments, family homes, and investment plots.
             </p>
-
             <button className="group bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto lg:mx-0">
-              Get Started
+              Get Started{" "}
               <span className="group-hover:translate-x-1 transition-transform">
                 →
               </span>
             </button>
-
             {/* Stats */}
             <div className="flex gap-8 pt-8 justify-center lg:justify-start">
               <div>
@@ -221,52 +214,24 @@ export default function Home() {
               </div>
             </div>
           </div>
-
-          {/* Hero Image with circular design */}
+          {/* Hero Image */}
           <div className="flex-1 relative">
-            <div className="relative">
-              {/* Large circular background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full transform scale-110 opacity-10"></div>
-
-              {/* Image container */}
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
-                <img
-                  src="/images/appartment.jpg"
-                  alt="Modern apartment"
-                  className="w-full h-auto object-cover"
-                  onError={(e) =>
-                    (e.target.src =
-                      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="600" height="400"%3E%3Crect fill="%23e5e7eb" width="600" height="400"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" fill="%239ca3af"%3EProperty Image%3C/text%3E%3C/svg%3E')
-                  }
-                />
-              </div>
-
-              {/* Floating card */}
-              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-2xl">✓</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">Verified</div>
-                    <div className="text-sm text-gray-600">All Listings</div>
-                  </div>
-                </div>
-              </div>
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-500">
+              <img
+                src="/images/appartment.jpg"
+                alt="Modern apartment"
+                className="w-full h-auto object-cover"
+                onError={(e) =>
+                  (e.target.src =
+                    "https://placehold.co/600x400?text=Property+Image")
+                }
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="text-gray-400">SCROLL DOWN</div>
-          <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto mt-2 flex justify-center">
-            <div className="w-1 h-3 bg-gray-400 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>
 
-      {/* 👇 NEW: PROPERTY LISTINGS SECTION (PUBLIC) */}
+      {/* FEATURED PROPERTIES */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -286,7 +251,6 @@ export default function Home() {
               </a>
             </div>
           </div>
-
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -310,15 +274,15 @@ export default function Home() {
                   href={`/property/${property._id}`}
                   className="block bg-white rounded-xl shadow-md hover:shadow-lg transition group"
                 >
-                  {property.images && property.images.length > 0 ? (
+                  {property.images?.[0] ? (
                     <img
                       src={getImageUrl(property.images[0])}
                       alt={property.title}
                       className="w-full h-48 object-cover rounded-t-xl"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://placehold.co/600x400?text=No+Image";
-                      }}
+                      onError={(e) =>
+                        (e.target.src =
+                          "https://placehold.co/600x400?text=No+Image")
+                      }
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 rounded-t-xl flex items-center justify-center">
@@ -350,10 +314,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SERVICES SECTION */}
+      {/* SERVICES */}
       <section id="services" className="py-24 bg-white relative">
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-indigo-50 to-transparent"></div>
-
         <div className="max-w-7xl mx-auto px-6 relative">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
@@ -363,7 +325,6 @@ export default function Home() {
               Everything you need to buy, sell, or rent property in Kenya
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {services.map((service, i) => (
               <div
@@ -371,7 +332,7 @@ export default function Home() {
                 className="group relative p-8 bg-gradient-to-br from-blue-50 to-white hover:from-blue-700 hover:to-blue-800 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
               >
                 <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform">
-                  {service.icon} {/* Now displays the Remix Icon component */}
+                  {service.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-white transition-colors">
                   {service.title}
@@ -380,14 +341,11 @@ export default function Home() {
                   {service.desc}
                 </p>
                 <button className="text-blue-700 group-hover:text-white font-semibold flex items-center gap-2 transition-colors">
-                  READ MORE
+                  READ MORE{" "}
                   <span className="group-hover:translate-x-1 transition-transform">
                     →
                   </span>
                 </button>
-
-                {/* Highlight effect */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-700 rounded-full opacity-0 group-hover:opacity-10 blur-2xl transition-opacity"></div>
               </div>
             ))}
           </div>
@@ -396,13 +354,10 @@ export default function Home() {
 
       {/* SIMPLE SOLUTIONS */}
       <section className="relative py-24 bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 text-white overflow-hidden">
-        {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 -translate-x-1/2 -translate-y-1/2"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 translate-x-1/2 translate-y-1/2"></div>
-
         <div className="max-w-7xl mx-auto px-6 relative">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Image side with circular design */}
             <div className="relative order-2 lg:order-1">
               <div className="absolute inset-0 bg-white rounded-full opacity-10 transform scale-110"></div>
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
@@ -417,18 +372,14 @@ export default function Home() {
                 />
               </div>
             </div>
-
-            {/* Content side */}
             <div className="order-1 lg:order-2 space-y-8">
               <h2 className="text-4xl lg:text-5xl font-bold leading-tight">
                 Simple Solutions!
               </h2>
-
               <p className="text-blue-100 text-lg">
                 Follow our streamlined process to find your perfect property in
                 Kenya
               </p>
-
               <div className="space-y-6">
                 {[
                   {
@@ -465,7 +416,6 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-
               <div className="flex gap-4 pt-4">
                 <button className="bg-white text-blue-700 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                   Get Started
@@ -486,12 +436,10 @@ export default function Home() {
       >
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Content */}
             <div className="space-y-6">
               <h2 className="text-4xl lg:text-5xl font-bold text-gray-900">
                 Our Agency
               </h2>
-
               <div className="space-y-4 text-gray-600 text-lg leading-relaxed">
                 <p>
                   Home254 connects Kenyans with trusted property listings across
@@ -509,16 +457,13 @@ export default function Home() {
                   that puts your needs first.
                 </p>
               </div>
-
               <button className="bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
-                Read more
+                Read more{" "}
                 <span className="group-hover:translate-x-1 transition-transform">
                   →
                 </span>
               </button>
             </div>
-
-            {/* Image with modern layout */}
             <div className="relative">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
                 <img
@@ -531,8 +476,6 @@ export default function Home() {
                   }
                 />
               </div>
-
-              {/* Decorative element */}
               <div className="absolute -bottom-8 -right-8 w-64 h-64 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-full opacity-20 blur-3xl"></div>
             </div>
           </div>
@@ -550,7 +493,6 @@ export default function Home() {
               Real stories from satisfied customers
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, i) => (
               <div
@@ -568,11 +510,9 @@ export default function Home() {
                     <p className="text-sm text-gray-500">{testimonial.role}</p>
                   </div>
                 </div>
-
                 <p className="text-gray-600 leading-relaxed mb-4">
                   "{testimonial.text}"
                 </p>
-
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <span key={i} className="text-yellow-400 text-xl">
@@ -595,7 +535,6 @@ export default function Home() {
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 w-60 h-60 bg-white rounded-full blur-3xl"></div>
         </div>
-
         <div className="max-w-4xl mx-auto px-6 text-center relative">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
             Ready to Get Started?
@@ -610,7 +549,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER - UPDATED WITH REMIX ICONS */}
+      {/* FOOTER */}
       <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-950 text-gray-300">
         <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
@@ -626,7 +565,6 @@ export default function Home() {
                 Kenya's trusted home marketplace — connecting buyers, sellers,
                 and renters nationwide.
               </p>
-              {/* Social Icons */}
               <div className="flex gap-3 pt-2">
                 <a
                   href="#"
@@ -651,7 +589,6 @@ export default function Home() {
                 </a>
               </div>
             </div>
-
             {/* Contact */}
             <div>
               <h4 className="font-bold text-white text-lg mb-4">Contact Us</h4>
@@ -670,7 +607,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-
             {/* Services */}
             <div>
               <h4 className="font-bold text-white text-lg mb-4">Services</h4>
@@ -689,7 +625,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-
             {/* About */}
             <div>
               <h4 className="font-bold text-white text-lg mb-4">About Us</h4>
@@ -709,7 +644,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500">
             <p>© 2025 Home254.com – All rights reserved.</p>
           </div>

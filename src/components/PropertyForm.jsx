@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import api from "../services/api";
 
+// Use environment variable for backend base URL (no need for /uploads anymore)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function PropertyForm({ isEdit = false, initialData = {} }) {
   const navigate = useNavigate();
 
@@ -29,7 +32,9 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
   });
 
   const [images, setImages] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
 
+  // Handle text and checkbox input
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -38,16 +43,20 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
     });
   };
 
+  // Handle image input and preview
   const handleImageChange = (e) => {
-    setImages(Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    setImages(files);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(previews);
   };
 
+  // Submit new or updated property
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formDataToSend = new FormData();
 
-    // Append text fields (skip empty optional specs)
     Object.keys(formData).forEach((key) => {
       const val = formData[key];
       if (val !== "" && val !== null && val !== undefined) {
@@ -55,7 +64,6 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
       }
     });
 
-    // Only append images if new files selected
     if (images.length > 0) {
       images.forEach((file) => {
         formDataToSend.append("images", file);
@@ -75,7 +83,9 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
       if (res.data.success) {
         Swal.fire(
           "Success",
-          isEdit ? "Property updated!" : "Property created!",
+          isEdit
+            ? "Property updated successfully!"
+            : "Property created successfully!",
           "success"
         );
         navigate("/admin/properties");
@@ -96,7 +106,7 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Title & Description */}
+        {/* Title & Price */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-gray-700 mb-2">Title *</label>
@@ -104,8 +114,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -115,12 +125,13 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               type="number"
               value={formData.price}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
+        {/* Description */}
         <div>
           <label className="block text-gray-700 mb-2">Description *</label>
           <textarea
@@ -128,8 +139,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
             value={formData.description}
             onChange={handleChange}
             rows="3"
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -141,7 +152,7 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               name="propertyType"
               value={formData.propertyType}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             >
               <option value="sale">For Sale</option>
               <option value="rent">For Rent</option>
@@ -153,7 +164,7 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             >
               <option value="apartment">Apartment</option>
               <option value="bungalow">Bungalow</option>
@@ -171,8 +182,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               name="location.county"
               value={formData["location.county"]}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -181,8 +192,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
               name="location.town"
               value={formData["location.town"]}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -238,8 +249,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
                 name="specs.roofType"
                 value={formData["specs.roofType"]}
                 onChange={handleChange}
-                className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="e.g., tile, mabati"
+                className="w-full px-2 py-1 border rounded text-sm"
               />
             </div>
             <div>
@@ -250,8 +261,8 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
                 name="specs.floorType"
                 value={formData["specs.floorType"]}
                 onChange={handleChange}
-                className="w-full px-2 py-1 border rounded text-sm"
                 placeholder="e.g., tile, wood"
+                className="w-full px-2 py-1 border rounded text-sm"
               />
             </div>
           </div>
@@ -260,7 +271,7 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
         {/* Images */}
         <div>
           <label className="block text-gray-700 mb-2">
-            Images (Max 10, JPG/PNG, up to 10MB each)
+            Upload Images (Max 10)
           </label>
           <input
             type="file"
@@ -269,13 +280,22 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
             onChange={handleImageChange}
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
-          {images.length > 0 && (
-            <p className="mt-2 text-sm text-gray-600">
-              Selected: {images.length} file(s)
-            </p>
+
+          {/* Preview selected images */}
+          {previewUrls.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {previewUrls.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt={`preview-${i}`}
+                  className="w-16 h-16 object-cover rounded border"
+                />
+              ))}
+            </div>
           )}
 
-          {/* Show current images in edit mode */}
+          {/* Show existing Cloudinary images in edit mode */}
           {isEdit && initialData.images && initialData.images.length > 0 && (
             <div className="mt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-2">
@@ -285,17 +305,17 @@ export default function PropertyForm({ isEdit = false, initialData = {} }) {
                 {initialData.images.map((img, i) => (
                   <img
                     key={i}
-                    src={`http://localhost:5000${img}`}
-                    alt={`current-${i}`}
+                    src={img} // Cloudinary gives full URLs
+                    alt={`existing-${i}`}
                     className="w-16 h-16 object-cover rounded border"
-                    onError={(e) => {
-                      e.target.src = "https://placehold.co/60x60?text=Img";
-                    }}
+                    onError={(e) =>
+                      (e.target.src = "https://placehold.co/60x60?text=Img")
+                    }
                   />
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Select new images above to replace all existing ones.
+                Selecting new images will replace all existing ones.
               </p>
             </div>
           )}

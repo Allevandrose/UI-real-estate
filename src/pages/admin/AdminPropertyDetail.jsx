@@ -3,17 +3,22 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchPropertyById } from "../../services/propertyService";
 
+// Use env variable for API base URL (for legacy/local images)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL.replace(/\/api$/, "");
+
+// ✅ Helper for image URL — detects if already hosted on Cloudinary
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
+  if (imagePath.startsWith("http")) return imagePath; // Cloudinary or any hosted URL
+  return `${API_BASE_URL}${imagePath}`; // fallback for local uploads
+};
+
 export default function AdminPropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
-    return `http://localhost:5000${imagePath}`;
-  };
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -55,7 +60,7 @@ export default function AdminPropertyDetail() {
 
   return (
     <div>
-      {/* Header with back & edit buttons */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <button
           onClick={() => navigate("/admin/properties")}
@@ -71,7 +76,7 @@ export default function AdminPropertyDetail() {
         </button>
       </div>
 
-      {/* Property Title & Price */}
+      {/* Title & Price */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{property.title}</h1>
         <p className="text-2xl font-semibold text-green-600 mt-2">
@@ -92,7 +97,7 @@ export default function AdminPropertyDetail() {
         </div>
       </div>
 
-      {/* Gallery */}
+      {/* Images */}
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4">Images</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -124,74 +129,43 @@ export default function AdminPropertyDetail() {
         </p>
       </div>
 
-      {/* Specs */}
+      {/* Specifications */}
       {property.specs && (
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Specifications</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {property.specs.bedrooms !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Bedrooms</p>
-                <p className="font-medium">{property.specs.bedrooms}</p>
-              </div>
-            )}
-            {property.specs.bathrooms !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Bathrooms</p>
-                <p className="font-medium">{property.specs.bathrooms}</p>
-              </div>
-            )}
-            <div className="bg-white p-3 rounded shadow">
-              <p className="text-sm text-gray-500">Furnished</p>
-              <p className="font-medium">
-                {property.specs.isFurnished ? "Yes" : "No"}
-              </p>
-            </div>
-            {property.specs.kitchens !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Kitchens</p>
-                <p className="font-medium">{property.specs.kitchens}</p>
-              </div>
-            )}
-            {property.specs.livingRooms !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Living Rooms</p>
-                <p className="font-medium">{property.specs.livingRooms}</p>
-              </div>
-            )}
-            {property.specs.parkingSpaces !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Parking Spaces</p>
-                <p className="font-medium">{property.specs.parkingSpaces}</p>
-              </div>
-            )}
-            {property.specs.upperFloors !== undefined && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Upper Floors</p>
-                <p className="font-medium">{property.specs.upperFloors}</p>
-              </div>
-            )}
-            {property.specs.roofType && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Roof Type</p>
-                <p className="font-medium">{property.specs.roofType}</p>
-              </div>
-            )}
-            {property.specs.floorType && (
-              <div className="bg-white p-3 rounded shadow">
-                <p className="text-sm text-gray-500">Floor Type</p>
-                <p className="font-medium">{property.specs.floorType}</p>
-              </div>
+            {Object.entries({
+              Bedrooms: property.specs.bedrooms,
+              Bathrooms: property.specs.bathrooms,
+              Kitchens: property.specs.kitchens,
+              "Living Rooms": property.specs.livingRooms,
+              "Parking Spaces": property.specs.parkingSpaces,
+              "Upper Floors": property.specs.upperFloors,
+              "Roof Type": property.specs.roofType,
+              "Floor Type": property.specs.floorType,
+              Furnished: property.specs.isFurnished ? "Yes" : "No",
+            }).map(
+              ([label, value]) =>
+                value !== undefined &&
+                value !== "" && (
+                  <div
+                    key={label}
+                    className="bg-white p-3 rounded shadow text-center"
+                  >
+                    <p className="text-sm text-gray-500">{label}</p>
+                    <p className="font-medium">{value}</p>
+                  </div>
+                )
             )}
           </div>
         </div>
       )}
 
-      {/* Owner Info (for admin reference) */}
+      {/* Owner Info */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
         <h3 className="font-medium text-blue-800 mb-1">Owner</h3>
         <p className="text-gray-700">
-          WhatsApp: {property.postedBy.whatsappContact}
+          WhatsApp: {property.postedBy?.whatsappContact || "N/A"}
         </p>
       </div>
     </div>
