@@ -3,17 +3,17 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchPropertyById } from "../services/propertyService";
 
+// Helper for image URL — assumes Cloudinary / hosted URL
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
+  return imagePath; // directly use Cloudinary URL
+};
+
 export default function PropertyDetail() {
   const { id } = useParams();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Helper to build full image URL
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
-    return `http://localhost:5000${imagePath}`;
-  };
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -21,9 +21,11 @@ export default function PropertyDetail() {
         const res = await fetchPropertyById(id);
         if (res.data.success) {
           setProperty(res.data.data);
+        } else {
+          setError("Property not found");
         }
       } catch (err) {
-        setError("Property not found or server error");
+        setError("Server error or property not found");
         console.error(err);
       } finally {
         setLoading(false);
@@ -63,7 +65,7 @@ export default function PropertyDetail() {
           </Link>
         </div>
 
-        {/* Property Title & Price */}
+        {/* Title & Price */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">{property.title}</h1>
           <p className="text-2xl font-semibold text-green-600 mt-2">
@@ -71,7 +73,7 @@ export default function PropertyDetail() {
           </p>
           <div className="flex items-center mt-2 text-gray-600">
             <span>
-              {property.location.town}, {property.location.county}
+              {property.location?.town}, {property.location?.county}
             </span>
             <span className="mx-2">•</span>
             <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-sm">
@@ -83,16 +85,17 @@ export default function PropertyDetail() {
         {/* Gallery */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {property.images && property.images.length > 0 ? (
+            {property.images?.length > 0 ? (
               property.images.map((img, i) => (
                 <img
                   key={i}
                   src={getImageUrl(img)}
                   alt={`${property.title} - ${i + 1}`}
                   className="w-full h-64 object-cover rounded-lg shadow"
-                  onError={(e) => {
-                    e.target.src = "https://placehold.co/600x400?text=No+Image";
-                  }}
+                  onError={(e) =>
+                    (e.target.src =
+                      "https://placehold.co/600x400?text=No+Image")
+                  }
                 />
               ))
             ) : (
@@ -111,65 +114,34 @@ export default function PropertyDetail() {
           </p>
         </div>
 
-        {/* Specs */}
+        {/* Specifications */}
         {property.specs && (
           <div className="mb-8 bg-white p-6 rounded-xl shadow">
             <h2 className="text-xl font-bold mb-4">Property Details</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {property.specs.bedrooms !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Bedrooms</p>
-                  <p className="font-medium">{property.specs.bedrooms}</p>
-                </div>
+              {Object.entries({
+                Bedrooms: property.specs.bedrooms,
+                Bathrooms: property.specs.bathrooms,
+                Kitchens: property.specs.kitchens,
+                "Living Rooms": property.specs.livingRooms,
+                "Parking Spaces": property.specs.parkingSpaces,
+                "Upper Floors": property.specs.upperFloors,
+                "Roof Type": property.specs.roofType,
+                "Floor Type": property.specs.floorType,
+                Furnished: property.specs.isFurnished ? "Yes" : "No",
+              }).map(
+                ([label, value]) =>
+                  value !== undefined &&
+                  value !== "" && (
+                    <div
+                      key={label}
+                      className="bg-white p-3 rounded shadow text-center"
+                    >
+                      <p className="text-sm text-gray-500">{label}</p>
+                      <p className="font-medium">{value}</p>
+                    </div>
+                  )
               )}
-              {property.specs.bathrooms !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Bathrooms</p>
-                  <p className="font-medium">{property.specs.bathrooms}</p>
-                </div>
-              )}
-              {property.specs.kitchens !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Kitchens</p>
-                  <p className="font-medium">{property.specs.kitchens}</p>
-                </div>
-              )}
-              {property.specs.livingRooms !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Living Rooms</p>
-                  <p className="font-medium">{property.specs.livingRooms}</p>
-                </div>
-              )}
-              {property.specs.parkingSpaces !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Parking</p>
-                  <p className="font-medium">{property.specs.parkingSpaces}</p>
-                </div>
-              )}
-              {property.specs.upperFloors !== undefined && (
-                <div>
-                  <p className="text-sm text-gray-500">Upper Floors</p>
-                  <p className="font-medium">{property.specs.upperFloors}</p>
-                </div>
-              )}
-              {property.specs.roofType && (
-                <div>
-                  <p className="text-sm text-gray-500">Roof Type</p>
-                  <p className="font-medium">{property.specs.roofType}</p>
-                </div>
-              )}
-              {property.specs.floorType && (
-                <div>
-                  <p className="text-sm text-gray-500">Floor Type</p>
-                  <p className="font-medium">{property.specs.floorType}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-gray-500">Furnished</p>
-                <p className="font-medium">
-                  {property.specs.isFurnished ? "Yes" : "No"}
-                </p>
-              </div>
             </div>
           </div>
         )}
@@ -180,7 +152,7 @@ export default function PropertyDetail() {
             Interested in this property?
           </h2>
           <a
-            href={`https://wa.me/${property.postedBy.whatsappContact.replace(
+            href={`https://wa.me/${property.postedBy?.whatsappContact?.replace(
               /\s+/g,
               ""
             )}`}
