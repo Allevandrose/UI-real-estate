@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../store/authSlice";
 
 export default function Navbar() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -54,14 +54,16 @@ export default function Navbar() {
         {/* Auth Section */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            // Show Logout + Dashboard
+            // Show Logout + Dashboard (only for admin users)
             <>
-              <button
-                onClick={() => navigate("/admin")}
-                className="text-blue-700 font-medium hover:text-blue-800 transition px-4 py-2"
-              >
-                Dashboard
-              </button>
+              {user.role === "admin" && (
+                <button
+                  onClick={() => navigate("/admin")}
+                  className="text-blue-700 font-medium hover:text-blue-800 transition px-4 py-2"
+                >
+                  Dashboard
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="bg-gray-700 text-white px-5 py-2 rounded-md shadow hover:bg-gray-600 transition font-medium"

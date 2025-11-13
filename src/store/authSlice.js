@@ -2,6 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 import Swal from "sweetalert2";
+import { jwtDecode } from "jwt-decode"; // Import jwt-decode
 
 // Async thunk: Register
 export const registerUser = createAsyncThunk(
@@ -11,7 +12,7 @@ export const registerUser = createAsyncThunk(
       const res = await api.post("/auth/register", userData);
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        return res.data.token;
+        return { token: res.data.token, user: jwtDecode(res.data.token) };
       }
       return rejectWithValue(res.data.message || "Registration failed");
     } catch (err) {
@@ -30,7 +31,9 @@ export const loginUser = createAsyncThunk(
       const res = await api.post("/auth/login", credentials);
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        return res.data.token;
+        // Decode token to get user info
+        const decoded = jwtDecode(res.data.token);
+        return { token: res.data.token, user: decoded };
       }
       return rejectWithValue(res.data.message || "Login failed");
     } catch (err) {
@@ -45,6 +48,9 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     token: localStorage.getItem("token") || null,
+    user: localStorage.getItem("token")
+      ? jwtDecode(localStorage.getItem("token"))
+      : null,
     loading: false,
     error: null,
     isAuthenticated: !!localStorage.getItem("token"),
@@ -53,6 +59,7 @@ const authSlice = createSlice({
     logout: (state) => {
       localStorage.removeItem("token");
       state.token = null;
+      state.user = null;
       state.isAuthenticated = false;
       state.error = null;
     },
@@ -66,7 +73,8 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.token = action.payload;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
         Swal.fire("Success", "Account created! Redirecting...", "success");
@@ -82,7 +90,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.token = action.payload;
+        state.token = action.payload.token;
+        state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
         Swal.fire("Success", "Logged in successfully!", "success");
