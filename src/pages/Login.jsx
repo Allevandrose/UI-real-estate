@@ -15,9 +15,19 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await dispatch(loginUser(formData));
-    // Redirect on success after 1.5 seconds
+
+    // Redirect on success after 1.5 seconds based on user role
     if (loginUser.fulfilled.match(result)) {
-      setTimeout(() => navigate("/admin"), 1500);
+      // Check if the user is an admin
+      const isAdmin = result.payload.user?.role === "admin";
+
+      setTimeout(() => {
+        if (isAdmin) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      }, 1500);
     }
   };
 
