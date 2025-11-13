@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+import { jwtDecode } from "jwt-decode";
 
 // Async thunk: Register
 export const registerUser = createAsyncThunk(
@@ -44,24 +44,51 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Helper function to safely get token from localStorage
+const getTokenFromStorage = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("token");
+  }
+  return null;
+};
+
+// Helper function to safely decode token
+const decodeToken = (token) => {
+  try {
+    return token ? jwtDecode(token) : null;
+  } catch (error) {
+    console.error("Failed to decode token:", error);
+    return null;
+  }
+};
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    token: localStorage.getItem("token") || null,
-    user: localStorage.getItem("token")
-      ? jwtDecode(localStorage.getItem("token"))
-      : null,
+    token: null, // Initialize as null, will be updated in useEffect
+    user: null, // Initialize as null, will be updated in useEffect
     loading: false,
     error: null,
-    isAuthenticated: !!localStorage.getItem("token"),
+    isAuthenticated: false, // Initialize as false, will be updated in useEffect
   },
   reducers: {
     logout: (state) => {
-      localStorage.removeItem("token");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
       state.token = null;
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
+    },
+    // Add a new action to initialize auth state from localStorage
+    initializeAuth: (state) => {
+      const token = getTokenFromStorage();
+      if (token) {
+        state.token = token;
+        state.user = decodeToken(token);
+        state.isAuthenticated = true;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -103,5 +130,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, initializeAuth } = authSlice.actions;
 export default authSlice.reducer;

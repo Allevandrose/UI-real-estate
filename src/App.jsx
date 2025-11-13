@@ -1,6 +1,7 @@
 // src/App.jsx
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react"; // Add this import
 import Navbar from "./components/Navbar";
 import ChatAssistant from "./components/ChatAssistant";
 import Home from "./pages/Home";
@@ -12,6 +13,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Outlet } from "react-router-dom";
+import { initializeAuth } from "./store/authSlice"; // Add this import
 
 // Admin Pages
 import PropertyList from "./pages/admin/PropertyList";
@@ -38,7 +40,13 @@ const AdminRouteGuard = () => {
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const { user } = useSelector((state) => state.auth); // Get user for role checks
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch(); // Add this
+
+  // Add this useEffect to initialize auth state from localStorage
+  useEffect(() => {
+    dispatch(initializeAuth());
+  }, [dispatch]);
 
   return (
     <>

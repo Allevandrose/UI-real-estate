@@ -4,15 +4,13 @@ import { useSelector } from "react-redux";
 import api from "../services/api";
 
 export default function ChatAssistant() {
+  // ALL hooks at the top, in consistent order
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const { isAuthenticated } = useSelector((state) => state.auth);
-
-  // Hide if not logged in
-  if (!isAuthenticated) return null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -54,6 +52,9 @@ export default function ChatAssistant() {
     window.open(`/property/${id}`, "_blank");
   };
 
+  // ✅ FIXED: Early return is now AFTER all hooks are declared
+  if (!isAuthenticated) return null;
+
   return (
     <>
       {/* Floating Button */}
@@ -89,10 +90,10 @@ export default function ChatAssistant() {
                 <p className="text-sm">
                   Examples:
                   <br />
-                  • “3-bedroom apartments under 5M in Nairobi”
+                  • "3-bedroom apartments under 5M in Nairobi"
                   <br />
-                  • “Furnished bungalows for rent in Mombasa”
-                  <br />• “Land plots in Kiambu”
+                  • "Furnished bungalows for rent in Mombasa"
+                  <br />• "Land plots in Kiambu"
                 </p>
               </div>
             )}
