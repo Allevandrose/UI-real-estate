@@ -1,4 +1,3 @@
-// src/pages/PropertyDetail.jsx
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchPropertyById } from "../services/propertyService";
@@ -151,17 +150,25 @@ export default function PropertyDetail() {
           <h2 className="text-xl font-bold mb-4">
             Interested in this property?
           </h2>
-          <a
-            href={`https://wa.me/${property.postedBy?.whatsappContact?.replace(
-              /\s+/g,
-              ""
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition shadow-md"
-          >
-            📞 Contact on WhatsApp
-          </a>
+          {property.postedBy?.whatsappContact && (
+            <a
+              href={`https://wa.me/${property.postedBy.whatsappContact.replace(
+                /\D/g,
+                ""
+              )}?text=${encodeURIComponent(
+                `Hi! I'm interested in this property:\n\n` +
+                  `Title: ${property.title}\n` +
+                  `Price: KES ${property.price.toLocaleString()}\n` +
+                  `Location: ${property.location?.town}, ${property.location?.county}\n\n` +
+                  `View listing: ${window.location.href}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition shadow-md"
+            >
+              📞 Contact on WhatsApp
+            </a>
+          )}
           <p className="mt-2 text-gray-600 text-sm">
             You'll be redirected to WhatsApp to message the owner.
           </p>
