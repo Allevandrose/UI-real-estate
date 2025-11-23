@@ -2,6 +2,65 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchPropertyById } from "../services/propertyService";
 
+// Loading Spinner Component
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="relative w-24 h-24">
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-gray-200"></div>
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+        <div className="absolute top-2 left-2 w-20 h-20 rounded-full border-4 border-gray-100"></div>
+        <div className="absolute top-2 left-2 w-20 h-20 rounded-full border-4 border-indigo-500 border-r-transparent animate-spin animation-delay-150"></div>
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-gray-50"></div>
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-blue-400 border-b-transparent animate-spin animation-delay-300"></div>
+      </div>
+      <div className="mt-6 flex space-x-2">
+        <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce animation-delay-100"></div>
+        <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce animation-delay-200"></div>
+        <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce animation-delay-300"></div>
+      </div>
+      <p className="mt-4 text-gray-600 text-lg font-medium">
+        Loading property details...
+      </p>
+      <style jsx>{`
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes bounce {
+          0%,
+          80%,
+          100% {
+            transform: scale(0);
+          }
+          40% {
+            transform: scale(1);
+          }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        .animate-bounce {
+          animation: bounce 1.4s ease-in-out infinite both;
+        }
+        .animation-delay-100 {
+          animation-delay: 0.1s;
+        }
+        .animation-delay-150 {
+          animation-delay: 0.15s;
+        }
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+        .animation-delay-300 {
+          animation-delay: 0.3s;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // Helper for image URL — assumes Cloudinary / hosted URL
 const getImageUrl = (imagePath) => {
   if (!imagePath) return "https://placehold.co/600x400?text=No+Image";
@@ -34,11 +93,7 @@ export default function PropertyDetail() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-xl">Loading property...</div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error || !property) {
