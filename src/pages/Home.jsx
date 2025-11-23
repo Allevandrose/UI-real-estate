@@ -83,13 +83,72 @@ function TextType({
   );
 }
 
+// Improved Loading Spinner Component
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20">
+      <div className="relative w-24 h-24">
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-gray-200"></div>
+        <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+        <div className="absolute top-2 left-2 w-20 h-20 rounded-full border-4 border-gray-100"></div>
+        <div className="absolute top-2 left-2 w-20 h-20 rounded-full border-4 border-indigo-500 border-r-transparent animate-spin animation-delay-150"></div>
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-gray-50"></div>
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-blue-400 border-b-transparent animate-spin animation-delay-300"></div>
+      </div>
+      <div className="mt-6 flex space-x-2">
+        <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce animation-delay-100"></div>
+        <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce animation-delay-200"></div>
+        <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce animation-delay-300"></div>
+      </div>
+      <p className="mt-4 text-gray-600 text-lg font-medium">
+        Loading properties...
+      </p>
+      <style jsx>{`
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        @keyframes bounce {
+          0%,
+          80%,
+          100% {
+            transform: scale(0);
+          }
+          40% {
+            transform: scale(1);
+          }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        .animate-bounce {
+          animation: bounce 1.4s ease-in-out infinite both;
+        }
+        .animation-delay-100 {
+          animation-delay: 0.1s;
+        }
+        .animation-delay-150 {
+          animation-delay: 0.15s;
+        }
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+        .animation-delay-300 {
+          animation-delay: 0.3s;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Search filters
+  // Search filters
   const [filters, setFilters] = useState({
     "location.county": "",
     "location.town": "",
@@ -107,7 +166,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ✅ Fetch properties with filters
+  // Fetch properties with filters
   useEffect(() => {
     const loadProperties = async () => {
       setLoading(true);
@@ -234,7 +293,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ✅ SEARCH & FILTER SECTION - REDESIGNED */}
+      {/* SEARCH & FILTER SECTION */}
       <section className="py-16 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
@@ -327,7 +386,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURED PROPERTIES - REDESIGNED HEADING */}
+      {/* FEATURED PROPERTIES */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -345,7 +404,9 @@ export default function Home() {
             </p>
           </div>
 
-          {error ? (
+          {loading ? (
+            <LoadingSpinner />
+          ) : error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : properties.length === 0 ? (
             <p className="text-center text-gray-500">
@@ -624,7 +685,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER - FIXED ALIGNMENT */}
+      {/* FOOTER */}
       <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-950 text-gray-300">
         <div className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
