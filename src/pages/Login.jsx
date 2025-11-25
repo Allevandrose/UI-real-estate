@@ -1,5 +1,6 @@
+// src/pages/Login.jsx
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux"; // Add useSelector
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../store/authSlice";
 import { Link } from "react-router-dom";
@@ -8,26 +9,33 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth); // Get user state
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(loginUser(formData));
+    try {
+      console.log("Attempting login...");
+      await dispatch(loginUser(formData)).unwrap();
+      console.log("Login action dispatched successfully.");
 
-    // Redirect on success after 1.5 seconds based on user role
-    if (loginUser.fulfilled.match(result)) {
-      // Check if the user is an admin
-      const isAdmin = result.payload.user?.role === "admin";
+      // The user state in Redux should be updated by now by the fulfilled case
+      console.log("User state after login dispatch:", user);
+      const isAdmin = user?.role === "admin"; // Check the updated state
+      console.log("Is admin after login?", isAdmin);
 
-      setTimeout(() => {
-        if (isAdmin) {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
-      }, 1500);
+      if (isAdmin) {
+        console.log("Redirecting to /admin...");
+        navigate("/admin");
+      } else {
+        console.log("Not an admin, redirecting to /...");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      // alert("Login failed: " + (error.message || "Unknown error"));
     }
   };
 

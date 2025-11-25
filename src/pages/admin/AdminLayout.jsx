@@ -1,14 +1,11 @@
-// src/pages/admin/AdminLayout.jsx
 import AdminSidebar from "../../components/AdminSidebar";
 
 export default function AdminLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      <div className="ml-72 mt-0 transition-all duration-300">
-        {" "}
-        {/* Adjust margin when sidebar collapses */}
-        <main className="p-6 w-full">{children}</main>
+      <div className="flex-1 ml-0 lg:ml-72 transition-all duration-300">
+        <main className="p-4 sm:p-6 min-h-screen">{children}</main>
       </div>
     </div>
   );

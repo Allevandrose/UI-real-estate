@@ -2,7 +2,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 import Swal from "sweetalert2";
-import { jwtDecode } from "jwt-decode";
 
 // Async thunk: Register
 export const registerUser = createAsyncThunk(
@@ -12,7 +11,9 @@ export const registerUser = createAsyncThunk(
       const res = await api.post("/auth/register", userData);
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        return { token: res.data.token, user: jwtDecode(res.data.token) };
+        // Store user data from the response, not from token decoding
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        return { token: res.data.token, user: res.data.user };
       }
       return rejectWithValue(res.data.message || "Registration failed");
     } catch (err) {
@@ -31,9 +32,9 @@ export const loginUser = createAsyncThunk(
       const res = await api.post("/auth/login", credentials);
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        // Decode token to get user info
-        const decoded = jwtDecode(res.data.token);
-        return { token: res.data.token, user: decoded };
+        // Store user data from the response, not from token decoding
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        return { token: res.data.token, user: res.data.user };
       }
       return rejectWithValue(res.data.message || "Login failed");
     } catch (err) {
@@ -44,22 +45,21 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Helper function to safely get user from localStorage
+const getUserFromStorage = () => {
+  if (typeof window !== "undefined") {
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
+  }
+  return null;
+};
+
 // Helper function to safely get token from localStorage
 const getTokenFromStorage = () => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("token");
   }
   return null;
-};
-
-// Helper function to safely decode token
-const decodeToken = (token) => {
-  try {
-    return token ? jwtDecode(token) : null;
-  } catch (error) {
-    console.error("Failed to decode token:", error);
-    return null;
-  }
 };
 
 const authSlice = createSlice({
@@ -75,6 +75,7 @@ const authSlice = createSlice({
     logout: (state) => {
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
       state.token = null;
       state.user = null;
@@ -84,9 +85,11 @@ const authSlice = createSlice({
     // Add a new action to initialize auth state from localStorage
     initializeAuth: (state) => {
       const token = getTokenFromStorage();
-      if (token) {
+      const user = getUserFromStorage();
+
+      if (token && user) {
         state.token = token;
-        state.user = decodeToken(token);
+        state.user = user;
         state.isAuthenticated = true;
       }
     },
@@ -101,7 +104,7 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = action.payload.user; // This now contains the full user object with role
         state.isAuthenticated = true;
         state.error = null;
         Swal.fire("Success", "Account created! Redirecting...", "success");
@@ -118,7 +121,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = action.payload.user; // This now contains the full user object with role
         state.isAuthenticated = true;
         state.error = null;
         Swal.fire("Success", "Logged in successfully!", "success");

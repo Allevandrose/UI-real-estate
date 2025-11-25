@@ -1,7 +1,13 @@
 // src/App.jsx
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react"; // Add this import
+import { useEffect, useState } from "react"; // Add useState
 import Navbar from "./components/Navbar";
 import ChatAssistant from "./components/ChatAssistant";
 import Home from "./pages/Home";
@@ -13,7 +19,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminLayout from "./pages/admin/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Outlet } from "react-router-dom";
-import { initializeAuth } from "./store/authSlice"; // Add this import
+import { initializeAuth } from "./store/authSlice"; // Make sure this import is there
 
 // Admin Pages
 import PropertyList from "./pages/admin/PropertyList";
@@ -26,27 +32,65 @@ import PropertyDetail from "./pages/PropertyDetail";
 
 // A dedicated component to protect admin routes based on user role
 const AdminRouteGuard = () => {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, loading } = useSelector((state) => state.auth); // Include loading state if available
 
-  // If not authenticated or not an admin, redirect to home
-  if (!isAuthenticated || user?.role !== "admin") {
+  // Optional: Add a check to ensure initializeAuth has run if needed
+  // const dispatch = useDispatch();
+  // useEffect(() => {
+  //   dispatch(initializeAuth());
+  // }, [dispatch]);
+
+  console.log("AdminRouteGuard - isAuthenticated:", isAuthenticated);
+  console.log("AdminRouteGuard - user:", user);
+  console.log("AdminRouteGuard - user?.role:", user?.role);
+
+  // If auth is still loading, show a loading state or nothing
+  if (loading) {
+    // If your authSlice doesn't have a loading state, remove this check
+    return <div>Checking authentication...</div>;
+  }
+
+  // If not authenticated at all, redirect to login
+  if (!isAuthenticated) {
+    console.log("AdminRouteGuard - Not authenticated, redirecting to login.");
+    return <Navigate to="/login" replace />;
+  }
+
+  // If authenticated but not an admin, redirect to home
+  if (user?.role !== "admin") {
+    console.log(
+      "AdminRouteGuard - Authenticated but not admin, redirecting to home."
+    );
     return <Navigate to="/" replace />;
   }
 
-  // If authenticated and is an admin, render the child routes
+  // If authenticated AND is admin, allow access to admin routes
+  console.log(
+    "AdminRouteGuard - Authenticated and is admin, rendering admin routes."
+  );
   return <Outlet />;
 };
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
-  const { user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch(); // Add this
+  const { user, isAuthenticated, loading } = useSelector((state) => state.auth); // Get state
+  const dispatch = useDispatch();
 
   // Add this useEffect to initialize auth state from localStorage
   useEffect(() => {
+    console.log("App - Running initializeAuth");
     dispatch(initializeAuth());
   }, [dispatch]);
+
+  // Optional: Log the auth state changes for debugging
+  useEffect(() => {
+    console.log("App - Auth state changed:", {
+      isAuthenticated,
+      user,
+      loading,
+    });
+  }, [isAuthenticated, user, loading]);
 
   return (
     <>
@@ -64,7 +108,6 @@ function App() {
           <Route path="/property/:id" element={<PropertyDetail />} />
 
           {/* Protected Admin Routes */}
-          {/* This route now uses our AdminRouteGuard to check for the 'admin' role */}
           <Route element={<AdminRouteGuard />}>
             <Route
               path="/admin"
