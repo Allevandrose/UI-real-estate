@@ -9,7 +9,8 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth); // Get user state
+  // We don't need to useSelector here anymore for the redirect logic
+  // as we can rely on the action result for immediate post-login state
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,13 +19,16 @@ export default function Login() {
     e.preventDefault();
     try {
       console.log("Attempting login...");
-      await dispatch(loginUser(formData)).unwrap();
-      console.log("Login action dispatched successfully.");
+      // Dispatch the login action and wait for it to complete
+      const result = await dispatch(loginUser(formData)).unwrap();
+      console.log("Login action dispatched successfully, result:", result);
 
-      // The user state in Redux should be updated by now by the fulfilled case
-      console.log("User state after login dispatch:", user);
-      const isAdmin = user?.role === "admin"; // Check the updated state
-      console.log("Is admin after login?", isAdmin);
+      // The action result contains the user info from the backend response
+      const userFromResult = result.user; // Use the user from the result directly
+      console.log("User from login result:", userFromResult);
+
+      const isAdmin = userFromResult?.role === "admin";
+      console.log("Is admin based on login result?", isAdmin);
 
       if (isAdmin) {
         console.log("Redirecting to /admin...");
